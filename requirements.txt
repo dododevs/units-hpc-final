@@ -1,0 +1,7 @@
+plotly
+Pyarrow
+pandas
+jupyter
+kaleido
+binarytree
+ipykernel
