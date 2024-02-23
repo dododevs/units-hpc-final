@@ -20,28 +20,25 @@ mb_t mandelbrot_func(double complex z, double complex c, int n, int Imax)
   return mandelbrot_func(z * z + c, c, n + 1, Imax);
 }
 
-mb_t** mandelbrot_matrix(int nx, int ny, double xL, double yL, double xR, double yR, int Imax)
+mb_t* mandelbrot_matrix(int nx, int ny, double xL, double yL, double xR, double yR, int Imax)
 {
   double dx, dy, x, y;
   double complex c;
-  mb_t** matrix;
+  mb_t* matrix;
 
   dx = (double) (xR - xL) / (double) (nx - 1);
   printf("dx = %.2f\n", dx);
   dy = (double) (yR - yL) / (double) (ny - 1);
   printf("dy = %.2f\n", dy);
 
-  matrix = (mb_t**) malloc(sizeof(mb_t*) * ny);
-  for (int i = 0; i < ny; i++) {
+  matrix = (mb_t*) malloc(sizeof(mb_t) * nx * ny);
+  for (int i = 0; i < nx; i++) {
     x = xL + i * dx;
-    matrix[i] = (mb_t*) malloc(sizeof(mb_t) * nx);
-    for (int j = 0; j < nx; j++) {
+    for (int j = 0; j < ny; j++) {
       y = yL + j * dy;
       c = x + I * y;
-      matrix[j][i] = mandelbrot_func(0 * I, c, 0, Imax);
-      printf("%.2f %.2f\t", x, y);
+      matrix[j * nx + i] = mandelbrot_func(0 * I, c, 0, Imax);
     }
-    printf("\n");
   }
   return matrix;
 }
@@ -97,13 +94,13 @@ int main(int argc, char** argv)
   Imax = atoi(argv[7]);
   image_name = argv[8];
 
-  mb_t** M = mandelbrot_matrix(nx, ny, xL, yL, xR, yR, Imax);
-  for (int i = 0; i < nx; i++) {
-    for (int j = 0; j < ny; j++) {
-      printf("%d ", M[i][j]);
-    }
-    printf("\n");
-  }
+  mb_t* M = mandelbrot_matrix(nx, ny, xL, yL, xR, yR, Imax);
+  // for (int i = 0; i < nx; i++) {
+  //   for (int j = 0; j < ny; j++) {
+  //     printf("%d ", M[i * ny + j]);
+  //   }
+  //   printf("\n");
+  // }
 
   write_pgm_image(M, 127, nx, ny, image_name);
 
