@@ -40,7 +40,7 @@ mb_t* _mandelbrot_matrix(int nx, int ny, double xL, double yL, double xR, double
 
   for (int i = 0; i < nx; i++) {
     x = xL + i * dx;
-    #pragma omp parallel for schedule(dynamic)
+    // #pragma omp parallel for schedule(dynamic)
     for (int j = 0; j < ny; j++) {
       y = yL + j * dy;
       c = x + I * y;
