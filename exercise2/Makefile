@@ -4,7 +4,7 @@ LDFLAGS = -lm
 EXEC = mandelbrot
 SRCS = mandelbrot.c pgm.c
 OBJS = $(SRCS:.c=.o)
-MPIRUN_FLAGS = --mca mca_base_component_show_load_errors 0 --map-by core
+MPIRUN_FLAGS = --mca mca_base_component_show_load_errors 0 --map-by core --use-hwthread-cpus
 
 all: $(EXEC)
 
