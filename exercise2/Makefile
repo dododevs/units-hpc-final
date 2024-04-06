@@ -1,6 +1,7 @@
 CC = mpicc
 CFLAGS = -Wall -Wextra -fopenmp
-LDFLAGS = -lm -lSDL2
+LDFLAGS = -lm
+LDFLAGS_VIZ = -lm -lSDL2
 EXEC = mandelbrot
 SRCS = mandelbrot.c pgm.c log.c viz.c
 OBJS = $(SRCS:.c=.o)
@@ -10,7 +11,7 @@ all:
 	$(CC) $(CFLAGS) -o $(EXEC) $(SRCS) $(LDFLAGS)
 
 viz:
-	$(CC) $(CFLAGS) -D VIZ -o $(EXEC) $(SRCS) $(LDFLAGS)
+	$(CC) $(CFLAGS) -D VIZ -o $(EXEC) $(SRCS) $(LDFLAGS_VIZ)
 
 clean:
 	rm -f $(EXEC) $(OBJS)
