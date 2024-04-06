@@ -5,27 +5,13 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include <stdarg.h>
-
-#define LOG_LEVEL 4
-
-void llog(int level, const char *format, ...) {
-  if (level > LOG_LEVEL) {
-    return;
-  }
-  va_list args;
-  va_start(args, format);
-  vprintf(format, args);    
-  va_end(args);
-}
-
 #include <mpi.h>
 #include <omp.h>
 
 #include "pgm.h"
-
-#define mb_t unsigned short
-#define max_mb_t (int) pow(2, 8 * sizeof(mb_t)) - 1
+#include "viz.h"
+#include "log.h"
+#include "types.h"
 
 #define TAG_BCAST_DONE 1337
 #define TAG_TASK_READY 7
@@ -101,7 +87,7 @@ mb_t* _mandelbrot_matrix_row(int r, int nx, int ny, double xL, double yL, double
   llog(4, "nx * ny = %d\n", nx * ny);
   matrix = (mb_t*) malloc(sizeof(mb_t) * nx);
 
-  #pragma omp parallel for schedule(dynamic)
+  // #pragma omp parallel for schedule(dynamic)
   for (int i = 0; i < nx; i++) {
     x = xL + i * dx;
     // #pragma omp parallel for schedule(dynamic)
@@ -109,6 +95,9 @@ mb_t* _mandelbrot_matrix_row(int r, int nx, int ny, double xL, double yL, double
       y = yL + j * dy;
       c = x + I * y;
       matrix[i] = mandelbrot_func(0 * I, c, 0, Imax);
+#ifdef VIZ
+      viz_render_pixel(matrix[i], r, i, Imax);
+#endif
     }
   }
 
@@ -199,7 +188,7 @@ mb_t* _mandelbrot_matrix_row(int r, int nx, int ny, double xL, double yL, double
 mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, double yR, int Imax)
 {
   int size, rank, done = 0;
-  int resolved_request_idx;
+  // int resolved_request_idx;
   MPI_Status status;
   MPI_Request* recv_requests;
   mb_t* M;
@@ -278,7 +267,8 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
     }
 
     next_row = 0;
-    M = (mb_t*) malloc(sizeof(mb_t) * nx * ny);
+    // M = (mb_t*) malloc(sizeof(mb_t) * nx * ny);
+    M = (mb_t*) calloc(nx * ny, sizeof(mb_t));
     row = (mb_t*) malloc(sizeof(mb_t) * nx);
     while (recvd_rows < ny) {
       // wait for any rank to be ready to receive a new task (row to be computed)
@@ -287,6 +277,9 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
       nrow = assigned_rows[status.MPI_SOURCE];
       if (nrow != -1) {
         memcpy(M + nrow * nx, row, nx * sizeof(mb_t));
+#ifdef VIZ
+        viz_render(M, nx, ny, Imax);
+#endif
         recvd_rows++;
       }
 
@@ -304,7 +297,7 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
 
     // MPI_Request* done_requests = (MPI_Request*) malloc(sizeof(MPI_Request) * size);
     next_row = -1;
-    for (int i = 0; i < size; i++) {
+    for (int i = 1; i < size; i++) {
       // MPI_Isend(&DONE, 1, MPI_INT, i, TAG_BCAST_DONE, MPI_COMM_WORLD, done_requests + i);
       // MPI_Send(&DONE, 1, MPI_INT, i, TAG_BCAST_DONE, MPI_COMM_WORLD);
       MPI_Send(&next_row, 1, MPI_INT, i, TAG_TASK_ROW, MPI_COMM_WORLD);
@@ -318,28 +311,6 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
 
 int main(int argc, char** argv)
 {
-  /* We need both OpenMPI and MPI to run properly: check for the OMPI_COMM_WORLD_SIZE 
-     environment variable, which is set by mpirun on start. */
-  char* world_size;
-  world_size = getenv("OMPI_COMM_WORLD_SIZE");
-  if (world_size == NULL) {
-    llog(4, "Error: it seems that the program was not run with mpirun. Please run with: mpirun [options] %s\n", argv[0]);
-    exit(1);
-  }
-
-  /* Initialize MPI using the MPI_THREAD_FUNNELED threading option, which allows only
-     the master thread in every process (rank) to perform MPI calls. */
-  int mpi_thread_init; 
-  int rank, size;
-  MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &mpi_thread_init); 
-  if (mpi_thread_init < MPI_THREAD_FUNNELED) { 
-    llog(4, "Error: could not initialize MPI with MPI_THREAD_FUNNELED\n");
-    MPI_Finalize(); 
-    exit(1); 
-  }
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
-
   /* Check whether all needed arguments were provided on the command line, else print the
      help message. */
   if (argc < 9) {
@@ -377,6 +348,37 @@ int main(int argc, char** argv)
     exit(1);
   }
 
+  /* We need both OpenMPI and MPI to run properly: check for the OMPI_COMM_WORLD_SIZE 
+     environment variable, which is set by mpirun on start. */
+  char* world_size;
+  world_size = getenv("OMPI_COMM_WORLD_SIZE");
+  if (world_size == NULL) {
+    llog(4, "Error: it seems that the program was not run with mpirun. Please run with: mpirun [options] %s\n", argv[0]);
+    exit(1);
+  }
+
+  /* Initialize MPI using the MPI_THREAD_FUNNELED threading option, which allows only
+     the master thread in every process (rank) to perform MPI calls. */
+  int mpi_thread_init; 
+  int rank, size;
+  MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &mpi_thread_init); 
+  if (mpi_thread_init < MPI_THREAD_FUNNELED) { 
+    llog(4, "Error: could not initialize MPI with MPI_THREAD_FUNNELED\n");
+    MPI_Finalize(); 
+    exit(1); 
+  }
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+#ifdef VIZ
+  if (rank == 0) {
+    if (viz_init("Mandelbrot", nx, ny)) {
+      llog(4, "Error: could not initialize SDL\n");
+      exit(1);
+    }
+  }
+#endif
+  
   // if (size > 1) {
   //   M = mandelbrot_matrix(nx, ny, xL, yL, xR, yR, Imax);
   // } else {
@@ -408,6 +410,9 @@ int main(int argc, char** argv)
   //   llog(4, "I am thread %d on rank %d\n", thread_id, rank);
   // }
 
+#ifdef VIZ
+  viz_destroy();
+#endif
   MPI_Finalize(); 
   return 0; 
 }

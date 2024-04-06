@@ -1,18 +1,16 @@
 CC = mpicc
 CFLAGS = -Wall -Wextra -fopenmp
-LDFLAGS = -lm
+LDFLAGS = -lm -lSDL2
 EXEC = mandelbrot
-SRCS = mandelbrot.c pgm.c
+SRCS = mandelbrot.c pgm.c log.c viz.c
 OBJS = $(SRCS:.c=.o)
 MPIRUN_FLAGS = --mca mca_base_component_show_load_errors 0 --map-by core --use-hwthread-cpus
 
-all: $(EXEC)
+all:
+	$(CC) $(CFLAGS) -o $(EXEC) $(SRCS) $(LDFLAGS)
 
-$(EXEC): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
-
-%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+viz:
+	$(CC) $(CFLAGS) -D VIZ -o $(EXEC) $(SRCS) $(LDFLAGS)
 
 clean:
 	rm -f $(EXEC) $(OBJS)
