@@ -17,8 +17,7 @@
 #define TAG_TASK_READY 7
 #define TAG_TASK_ROW 8
 #define TAG_TASK_ROW_RESULT 9
-
-const int DONE = 1;
+#define DONE 1
 
 mb_t mandelbrot_func(double complex z, double complex c, int n, int Imax)
 {

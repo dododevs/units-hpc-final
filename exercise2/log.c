@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #ifndef LOG_LEVEL
-#define LOG_LEVEL 4
+#define LOG_LEVEL 1
 #endif
 
 void llog(int level, const char *format, ...) {
