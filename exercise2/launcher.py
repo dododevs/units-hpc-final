@@ -17,7 +17,8 @@ if __name__ == "__main__":
   print("*" * len(header))
   print(header)
   print("*" * len(header))
-  for np in range(MIN_PROCESSES, MAX_PROCESSES + 1):
+
+  for np in range(MAX_PROCESSES, MIN_PROCESSES - 1, -1):
     start = time.time()
     call(["make", "run"], env={
       "ARGS": f"{SIZE} {SIZE} {X_L} {Y_L} {X_R} {Y_R} {IMAX} test.pgm",
