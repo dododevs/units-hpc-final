@@ -30,7 +30,7 @@ mb_t mandelbrot_func(double complex z, double complex c, int n, int Imax)
   return mandelbrot_func(z * z + c, c, n + 1, Imax);
 }
 
-mb_t* _mandelbrot_matrix(int nx, int ny, double xL, double yL, double xR, double yR, int Imax)
+mb_t* mandelbrot_matrix_single(int nx, int ny, double xL, double yL, double xR, double yR, int Imax)
 {
   double dx, dy, x, y;
   double complex c;
@@ -46,9 +46,9 @@ mb_t* _mandelbrot_matrix(int nx, int ny, double xL, double yL, double xR, double
   llog(4, "nx * ny = %d\n", nx * ny);
   matrix = (mb_t*) malloc(sizeof(mb_t) * nx * ny);
 
+  #pragma omp parallel for schedule(dynamic)
   for (int i = 0; i < nx; i++) {
     x = xL + i * dx;
-    // #pragma omp parallel for schedule(dynamic)
     for (int j = 0; j < ny; j++) {
       y = yL + j * dy;
       c = x + I * y;
@@ -56,17 +56,6 @@ mb_t* _mandelbrot_matrix(int nx, int ny, double xL, double yL, double xR, double
     }
   }
 
-  // int rank;
-  // char* partfile;
-  // MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  // partfile = (char*) malloc(sizeof(char) * 21);
-  // sllog(4, partfile, "test%d.pgm", rank);
-
-  // write_pgm_image(matrix, Imax, nx, ny, partfile);
-  llog(4, "matrix[0] = %d\n", matrix[0]);
-  llog(4, "matrix[1] = %d\n", matrix[1]);
-
-  // free(partfile);
   return matrix;
 }
 
@@ -86,103 +75,18 @@ mb_t* _mandelbrot_matrix_row(int r, int nx, int ny, double xL, double yL, double
   llog(4, "nx * ny = %d\n", nx * ny);
   matrix = (mb_t*) malloc(sizeof(mb_t) * nx);
 
-  // #pragma omp parallel for schedule(dynamic)
   for (int i = 0; i < nx; i++) {
     x = xL + i * dx;
-    // #pragma omp parallel for schedule(dynamic)
-    for (int j = r; j < r + 1; j++) {
-      y = yL + j * dy;
-      c = x + I * y;
-      matrix[i] = mandelbrot_func(0 * I, c, 0, Imax);
-#ifdef VIZ
-      viz_render_pixel(matrix[i], r, i, Imax);
-#endif
-    }
+    y = yL + r * dy;
+    c = x + I * y;
+    matrix[i] = mandelbrot_func(0 * I, c, 0, Imax);
+    #ifdef VIZ
+    viz_render_pixel(matrix[i], r, i, Imax);
+    #endif
   }
 
   return matrix;
 }
-
-// mb_t* mandelbrot_matrix(int nx, int ny, double xL, double yL, double xR, double yR, int Imax)
-// {
-//   mb_t* M;
-//   mb_t* M_whole;
-//   mb_t* MT;
-//   int rank, size, dw, dh;
-//   int* recvcounts;
-//   int* displs;
-//   double dx, dy;
-
-//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//   MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-//   dx = (double) (xR - xL) / (double) size;
-//   dy = (double) (yR - yL) / (double) size;
-//   dw = (int) floor((double) nx / (double) size);
-//   dh = (int) floor((double) ny / (double) size);
-  
-//   llog(4, "dx = %.5f, rank = %d, dh = %d, size = %d\n", dx, rank, dh, size);
-//   M = _mandelbrot_matrix(
-//     nx,
-//     rank == size - 1 ? dh + (ny % size) : dh,
-//     xL,
-//     yL + rank * dy,
-//     xR,
-//     rank == size - 1 ? yR : yL + (rank + 1) * dy,
-//     Imax
-//   );
-//   // M = _mandelbrot_matrix(
-//   //   rank == size - 1 ? dw + (nx % size) : dw,
-//   //   ny,
-//   //   xL + rank * dx,
-//   //   yL,
-//   //   rank == size - 1 ? xR : xL + (rank + 1) * dx,
-//   //   yR,
-//   //   Imax
-//   // );
-//   if (rank == 0) {
-//     M_whole = (mb_t*) malloc(nx * ny * sizeof(mb_t));
-//     recvcounts = (int*) malloc(sizeof(int) * size);
-//     displs = (int*) malloc(sizeof(int) * size);
-//     for (int r = 0; r < size; r++) {
-//       recvcounts[r] = ((r == size - 1) ? dh + (ny % size) : dh) * nx;
-//       displs[r] = r == 0 ? 0 : displs[r - 1] + recvcounts[r - 1];
-//       llog(4, "recvcounts[%d] = %d, displs[%d] = %d\n", r, recvcounts[r], r, displs[r]);
-//     }
-//   }
-//   // if (rank == 0) {
-//   //   M_whole = (mb_t*) malloc(nx * ny * sizeof(mb_t));
-//   //   recvcounts = (int*) malloc(sizeof(int) * size);
-//   //   displs = (int*) malloc(sizeof(int) * size);
-//   //   for (int r = 0; r < size; r++) {
-//   //     recvcounts[r] = ((r == size - 1) ? dw + (nx % size) : dw) * ny;
-//   //     displs[r] = r == 0 ? 0 : displs[r - 1] + recvcounts[r - 1];
-//   //     llog(4, "recvcounts[%d] = %d, displs[%d] = %d\n", r, recvcounts[r], r, displs[r]);
-//   //   }
-//   // }
-//   llog(4, "dw * ny = %d\n", dw * ny);
-
-//   // MPI_Gatherv(M, (rank == size - 1 ? (dh + (ny % size)) : dh) * nx, MPI_UNSIGNED_SHORT, M_whole, recvcounts, displs, MPI_UNSIGNED_SHORT, 0, MPI_COMM_WORLD);
-//   MPI_Gatherv(M, (rank == size - 1 ? (dw + (nx % size)) : dw) * ny, MPI_UNSIGNED_SHORT, M_whole, recvcounts, displs, MPI_UNSIGNED_SHORT, 0, MPI_COMM_WORLD);
-
-//   // MT = (mb_t*) malloc(nx * ny * sizeof(mb_t));
-//   // for (int i = 0; i < nx; i++) {
-//   //   for (int j = 0; j < ny; j++) {
-//   //     MT[i * ny + j] = M_whole[j * nx + i];
-//   //   }
-//   // }
-
-//   if (rank == 0) {
-//     // for (int i = 0; i < size; i++) {
-//     //   llog(4, "rank=%d M[0] = %d\n", i, M_whole[displs[i]]);
-//     //   llog(4, "rank=%d M[1] = %d\n", i, M_whole[displs[i] + 1]);
-//     // }
-//     free(recvcounts);
-//     free(displs);
-//   }
-  
-//   return M;
-// }
 
 mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, double yR, int Imax)
 {
@@ -276,9 +180,9 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
       nrow = assigned_rows[status.MPI_SOURCE];
       if (nrow != -1) {
         memcpy(M + nrow * nx, row, nx * sizeof(mb_t));
-#ifdef VIZ
+        #ifdef VIZ
         viz_render(M, nx, ny, Imax);
-#endif
+        #endif
         recvd_rows++;
       }
 
@@ -369,49 +273,29 @@ int main(int argc, char** argv)
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-#ifdef VIZ
+  #ifdef VIZ
   if (rank == 0) {
     if (viz_init("Mandelbrot", nx, ny)) {
       llog(4, "Error: could not initialize SDL\n");
       exit(1);
     }
   }
-#endif
-  
-  // if (size > 1) {
-  //   M = mandelbrot_matrix(nx, ny, xL, yL, xR, yR, Imax);
-  // } else {
-  //   M = _mandelbrot_matrix(nx, ny, xL, yL, xR, yR, Imax);
-  // }
-  // for (int i = 0; i < nx; i++) {
-  //   for (int j = 0; j < ny; j++) {
-  //     llog(4, "%d ", M[i * ny + j]);
-  //   }
-  //   llog(4, "\n");
-  // }
-  M = mandelbrot_matrix_rr(nx, ny, xL, yL, xR, yR, Imax);
+  #endif
+
+  if (size == 1) {
+    M = mandelbrot_matrix_single(nx, ny, xL, yL, xR, yR, Imax);
+  } else {
+    M = mandelbrot_matrix_rr(nx, ny, xL, yL, xR, yR, Imax);
+  }
 
   if (rank == 0) {
     write_pgm_image(M, Imax, nx, ny, image_name);
   }
 
-  // int thread_id;
-  // int rank;
-
-  // #pragma omp parallel private(thread_id)
-  // {
-  //   #pragma omp master
-  //   {
-  //     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  //   }
-    
-  //   thread_id = omp_get_thread_num();
-  //   llog(4, "I am thread %d on rank %d\n", thread_id, rank);
-  // }
-
-#ifdef VIZ
+  #ifdef VIZ
   viz_destroy();
-#endif
+  #endif
+  
   MPI_Finalize(); 
   return 0; 
 }
