@@ -42,7 +42,7 @@ if __name__ == "__main__":
   nthreads = get_omp_num_threads()
 
   for numa in range(nnuma, 0, -1):
-    cores_in_numa = nthreads / numa
+    cores_in_numa = nthreads // numa
     for thread in range(cores_in_numa, 0, -1):
       start = time.time()
       call(["make", "run"], env={
@@ -55,4 +55,4 @@ if __name__ == "__main__":
       end = time.time()
 
       elapsed = end - start
-      print(f"nnuma={numa} | {elapsed:.3f}")
+      print(f"nnuma={numa} | cores={thread} | {elapsed:.3f}")
