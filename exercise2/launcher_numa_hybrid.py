@@ -27,7 +27,7 @@ def get_numa_count():
 def get_omp_num_threads():
   p = Popen("./get_omp_num_threads", env=os.environ, shell=True, stdout=PIPE)
   out, err = p.communicate()
-  ptn = re.findall("omp_get_num_threads() = ([0-9]+)", str(out))
+  ptn = re.findall("omp_get_num_threads\(\) = ([0-9]+)", str(out))
   if not ptn:
     return 1
   return int(ptn[0])
