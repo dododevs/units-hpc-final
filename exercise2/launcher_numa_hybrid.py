@@ -42,7 +42,8 @@ if __name__ == "__main__":
   nthreads = get_omp_num_threads()
 
   for numa in range(nnuma, 0, -1):
-    for thread in range(nthreads, 0, -1):
+    cores_in_numa = nthreads / numa
+    for thread in range(cores_in_numa, 0, -1):
       start = time.time()
       call(["make", "run"], env={
         "ARGS": f"{SIZE} {SIZE} {X_L} {Y_L} {X_R} {Y_R} {IMAX} test.pgm",
