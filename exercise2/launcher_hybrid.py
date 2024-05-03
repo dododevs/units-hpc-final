@@ -28,7 +28,7 @@ if __name__ == "__main__":
         "ARGS": f"{SIZE} {SIZE} {X_L} {Y_L} {X_R} {Y_R} {IMAX} test.pgm",
         "np": str(np),
         "OMP_PLACES": "cores",
-        "OMP_NUM_THREADS": str(npl)
+        "OMP_NUM_THREADS": str(npl),
         **os.environ
       }, stdout=DEVNULL, stderr=DEVNULL)
       end = time.time()
