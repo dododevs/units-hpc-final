@@ -3,7 +3,7 @@ import time
 import os
 import re
 
-SIZE = 512
+SIZE = 2048
 IMAX = 65535
 X_L = -3
 Y_L = -3
@@ -40,12 +40,12 @@ if __name__ == "__main__":
   print(header)
   print("*" * len(header))
 
-  nnuma = get_numa_count() * NNODES
+  nnuma = get_numa_count()
   nthreads = get_omp_num_threads() // nnuma
 
-  for numa in range(nnuma, 0, -1):
+  for numa in range(nnuma * NNODES, 0, -2):
     # cores_in_numa = nthreads // numa
-    for thread in range(nthreads, 0, -1):
+    for thread in range(nthreads, 0, -2):
       start = time.time()
       call(["make", "run"], env={
         "ARGS": f"{SIZE} {SIZE} {X_L} {Y_L} {X_R} {Y_R} {IMAX} test.pgm",
