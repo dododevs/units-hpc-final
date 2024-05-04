@@ -10,6 +10,8 @@ Y_L = -3
 X_R = 3
 Y_R = 3
 
+NNODES = 2
+
 # MIN_PROCESSES = 1
 # MAX_PROCESSES = 2
 
@@ -38,12 +40,12 @@ if __name__ == "__main__":
   print(header)
   print("*" * len(header))
 
-  nnuma = get_numa_count()
-  nthreads = get_omp_num_threads()
+  nnuma = get_numa_count() * NNODES
+  nthreads = get_omp_num_threads() // nnuma
 
   for numa in range(nnuma, 0, -1):
-    cores_in_numa = nthreads // numa
-    for thread in range(cores_in_numa, 0, -1):
+    # cores_in_numa = nthreads // numa
+    for thread in range(nthreads, 0, -1):
       start = time.time()
       call(["make", "run"], env={
         "ARGS": f"{SIZE} {SIZE} {X_L} {Y_L} {X_R} {Y_R} {IMAX} test.pgm",
