@@ -17,28 +17,31 @@ int viz_init(char* title, int width, int height)
     return 1;
   }
 
-  // float ratio = (float) width / height;
-  // int win_height = (int) WINDOW_WIDTH / ratio;
-  // window = SDL_CreateWindow(
-  //   title,
-  //   SDL_WINDOWPOS_UNDEFINED,
-  //   SDL_WINDOWPOS_UNDEFINED,
-  //   WINDOW_WIDTH,
-  //   win_height,
-  //   SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN
-  // );
+  float ratio = (float) width / height;
+  int win_height = (int) WINDOW_WIDTH / ratio;
+  printf("win_height = %d\n", win_height);
+  /* window = SDL_CreateWindow( */
+  /*   title, */
+  /*   SDL_WINDOWPOS_CENTERED, */
+  /*   SDL_WINDOWPOS_CENTERED, */
+  /*   WINDOW_WIDTH, */
+  /*   win_height, */
+  /*   SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN */
+  /* ); */
   window = SDL_CreateWindow(
     title,
     SDL_WINDOWPOS_UNDEFINED,
     SDL_WINDOWPOS_UNDEFINED,
-    width,
-    height,
-    SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN
+    WINDOW_WIDTH,
+    win_height,
+    SDL_WINDOW_SHOWN
   );
+
   if (window == NULL) {
     SDL_Log("Unable to create window: %s", SDL_GetError());
     return 1;
   }
+  // SDL_SetWindowSize(window, WINDOW_WIDTH, win_height);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
   if (renderer == NULL) {
     SDL_Log("Unable to create renderer: %s", SDL_GetError());
@@ -56,7 +59,9 @@ void viz_render(mb_t* M, int nx, int ny, int max)
   int v;
   for (int y = 0; y < ny; y++) {
     for (int x = 0; x < nx; x++) {
-      v = M[y * nx + x] * 255 / max;
+      // v = (double) M[y * nx + x] / (double) max * 255;
+      v = M[y * nx + x];
+      
       SDL_SetRenderDrawColor(renderer, v, v, v, 255);
       SDL_RenderDrawPoint(renderer, x, y);
     }
