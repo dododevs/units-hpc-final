@@ -11,8 +11,9 @@ X_R = 3
 Y_R = 3
 
 NNODES = 1
+NSOCKETS = 1
 OMP_PLACES = "cores"
-PLACES_PER_NODE = 128
+PLACES_PER_SOCKET = 64
 
 if __name__ == "__main__":
   header = f"nodes={NNODES} EPYC places={OMP_PLACES} places_per_node={PLACES_PER_NODE} size = {SIZE} Imax = {IMAX} xL = {X_L} yL = {Y_L} xR = {X_R} yR = {Y_R}"
@@ -20,8 +21,8 @@ if __name__ == "__main__":
   print(header)
   print("*" * len(header))
 
-  for node in range(NNODES, 0, -1):
-    places = PLACES_PER_NODE
+  for node in range(NSOCKETS, 0, -1):
+    places = PLACES_PER_SOCKET
     while places > 0:
       start = time.time()
       call(["make", "run"], env={
