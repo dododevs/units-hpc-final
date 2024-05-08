@@ -3,7 +3,7 @@
 #include <complex.h>
 #include <math.h>
 #include <string.h>
-#include <sys/time.h>
+#include <time.h>
 
 #include <mpi.h>
 #include <omp.h>
@@ -46,7 +46,7 @@ mb_t* mandelbrot_matrix_single(int nx, int ny, double xL, double yL, double xR, 
   llog(4, "nx * ny = %d\n", nx * ny);
   matrix = (mb_t*) malloc(sizeof(mb_t) * nx * ny);
 
-  #pragma omp parallel for schedule(dynamic)
+  // #pragma omp parallel for schedule(dynamic)
   for (int i = 0; i < nx; i++) {
     x = xL + i * dx;
     for (int j = 0; j < ny; j++) {
@@ -75,14 +75,12 @@ mb_t* _mandelbrot_matrix_row(int r, int nx, int ny, double xL, double yL, double
   llog(4, "nx * ny = %d\n", nx * ny);
   matrix = (mb_t*) malloc(sizeof(mb_t) * nx);
 
+  #pragma omp parallel for schedule(dynamic)
   for (int i = 0; i < nx; i++) {
     x = xL + i * dx;
     y = yL + r * dy;
     c = x + I * y;
     matrix[i] = mandelbrot_func(0 * I, c, 0, Imax);
-    #ifdef VIZ
-    viz_render_pixel(matrix[i], r, i, Imax);
-    #endif
   }
 
   return matrix;
@@ -231,6 +229,7 @@ int main(int argc, char** argv)
     exit(1);
   }
 
+  clock_t cputime;
   int nx, ny, Imax;
   double xL, yL, xR, yR;
   char* image_name;
@@ -288,6 +287,12 @@ int main(int argc, char** argv)
     M = mandelbrot_matrix_rr(nx, ny, xL, yL, xR, yR, Imax);
   }
 
+  cputime = clock();
+
+  double walltime;
+  walltime = (double) cputime / CLOCKS_PER_SEC;
+  llog(1, "[rank %d] cpu time: %f seconds\n", rank, walltime);
+
   if (rank == 0) {
     write_pgm_image(M, Imax, nx, ny, image_name);
   }
@@ -295,6 +300,7 @@ int main(int argc, char** argv)
   #ifdef VIZ
   viz_destroy();
   #endif
+  
   
   MPI_Finalize(); 
   return 0; 
