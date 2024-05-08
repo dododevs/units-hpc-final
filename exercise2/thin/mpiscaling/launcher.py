@@ -11,8 +11,9 @@ X_R = 3
 Y_R = 3
 
 NNODES = 2
+NSOCKETS = NNODES * 2
 OMP_PLACES = "cores"
-PLACES_PER_NODE = 1
+PLACES_PER_SOCKET = 1
 
 if __name__ == "__main__":
   header = f"nodes={NNODES} THIN places={OMP_PLACES} places_per_node={PLACES_PER_NODE} size = {SIZE} Imax = {IMAX} xL = {X_L} yL = {Y_L} xR = {X_R} yR = {Y_R}"
@@ -20,8 +21,8 @@ if __name__ == "__main__":
   print(header)
   print("*" * len(header))
 
-  for node in range(NNODES, 0, -1):
-    places = PLACES_PER_NODE
+  for node in range(NSOCKETS, 0, -1):
+    places = PLACES_PER_SOCKET
     while places > 0:
       start = time.time()
       call(["make", "run"], env={
