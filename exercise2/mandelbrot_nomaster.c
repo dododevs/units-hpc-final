@@ -89,9 +89,12 @@ mb_t* _mandelbrot_matrix_row(int r, int nx, int ny, double xL, double yL, double
 mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, double yR, int Imax)
 {
   int size, rank, done = 0;
+  // int resolved_request_idx;
   MPI_Status status;
   MPI_Request* recv_requests;
   mb_t* M;
+  // struct timeval start, end;
+  // long microseconds = -1;
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -106,8 +109,15 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
       recv_requests = (MPI_Request*) malloc(sizeof(MPI_Request) * 2);
       int requested_row;
 
+      // setup receival of the completion message, sent by root when all due work is done
+      // MPI_Irecv(&done, 1, MPI_INT, 0, TAG_BCAST_DONE, MPI_COMM_WORLD, recv_requests);
+
       // setup receival of a task to be performed
+      // MPI_Irecv(&requested_row, 1, MPI_INT, 0, TAG_TASK_ROW, MPI_COMM_WORLD, recv_requests + 1);
       MPI_Recv(&requested_row, 1, MPI_INT, 0, TAG_TASK_ROW, MPI_COMM_WORLD, &status);
+
+      // llog(4, "[rank %d] entering barrier\n", rank);
+      // MPI_Barrier(MPI_COMM_WORLD);
 
       // wait for either the completion message or a new task
       llog(2, "[rank %d] waiting for either a task or completion\n", rank);
@@ -116,6 +126,14 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
         done = 1;
         llog(2, "[rank %d] all done here, terminating\n", rank);
       }
+
+      // gettimeofday(&end, NULL);
+      // if (microseconds == -1) {
+      //   microseconds = 0;
+      // } else {
+      //   microseconds += end.tv_usec - start.tv_usec;
+      //   llog(4, "[rank %d] waiting time: %06ld microseconds\n", rank, microseconds);
+      // }
 
       if (status.MPI_TAG == TAG_TASK_ROW && requested_row >= 0) {
         llog(4, "[rank %d] computing row %d\n", rank, requested_row);
@@ -134,6 +152,7 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
         llog(2, "[rank %d] sending back to root\n", rank);
         MPI_Send(M, nx, MPI_UNSIGNED_SHORT, 0, TAG_TASK_ROW_RESULT, MPI_COMM_WORLD);
 
+        // gettimeofday(&start, NULL);
         free(recv_requests);
       }
     }
@@ -142,8 +161,6 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
     int* assigned_rows;
     MPI_Status status;
     mb_t* row;
-    MPI_Request row_result_recv;
-    int row_result_recvd;
 
     assigned_rows = (int*) malloc(sizeof(int) * size);
     for (int i = 0; i < size; i++) {
@@ -151,33 +168,12 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
     }
 
     next_row = 0;
+    // M = (mb_t*) malloc(sizeof(mb_t) * nx * ny);
     M = (mb_t*) calloc(nx * ny, sizeof(mb_t));
     row = (mb_t*) malloc(sizeof(mb_t) * nx);
     while (recvd_rows < ny) {
       // wait for any rank to be ready to receive a new task (row to be computed)
-      // MPI_Recv(row, nx, MPI_UNSIGNED_SHORT, MPI_ANY_SOURCE, TAG_TASK_ROW_RESULT, MPI_COMM_WORLD, &status);
-      MPI_Irecv(row, nx, MPI_UNSIGNED_SHORT, MPI_ANY_SOURCE, TAG_TASK_ROW_RESULT, MPI_COMM_WORLD, &row_result_recv);
-
-      // master doing work!
-      MPI_Test(&row_result_recv, &row_result_recvd, &status);
-      while (!row_result_recvd && next_row < ny) {
-        nrow = next_row;
-        row = _mandelbrot_matrix_row(
-          next_row,
-          nx,
-          ny,
-          xL,
-          yL,
-          xR,
-          yR,
-          Imax
-        );
-        memcpy(M + nrow * nx, row, nx * sizeof(mb_t));
-        next_row++;
-        recvd_rows++;
-
-        MPI_Test(&row_result_recv, &row_result_recvd, &status);
-      }
+      MPI_Recv(row, nx, MPI_UNSIGNED_SHORT, MPI_ANY_SOURCE, TAG_TASK_ROW_RESULT, MPI_COMM_WORLD, &status);
 
       nrow = assigned_rows[status.MPI_SOURCE];
       if (nrow != -1) {
@@ -188,6 +184,9 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
         recvd_rows++;
       }
 
+      // llog(4, "[rank %d] entering barrier\n", rank);
+      // MPI_Barrier(MPI_COMM_WORLD);
+
       // send the ready rank some work to do, i.e. the next available row to be computed
       if (next_row < ny) {
         llog(4, "assigning row %d to rank %d\n", next_row, status.MPI_SOURCE);
@@ -197,12 +196,17 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
       }
     }
 
+    // MPI_Request* done_requests = (MPI_Request*) malloc(sizeof(MPI_Request) * size);
     next_row = -1;
     for (int i = 1; i < size; i++) {
+      // MPI_Isend(&DONE, 1, MPI_INT, i, TAG_BCAST_DONE, MPI_COMM_WORLD, done_requests + i);
+      // MPI_Send(&DONE, 1, MPI_INT, i, TAG_BCAST_DONE, MPI_COMM_WORLD);
       MPI_Send(&next_row, 1, MPI_INT, i, TAG_TASK_ROW, MPI_COMM_WORLD);
     }
+    // MPI_Waitall(size, done_requests, MPI_STATUSES_IGNORE);
     llog(2, "all done\n");
   }
+  // llog(4, "[rank %d] total waiting time: %06ld microseconds\n", rank, microseconds);
   return M;
 }
 
