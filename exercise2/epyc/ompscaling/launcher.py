@@ -13,10 +13,11 @@ Y_R = 3
 NNODES = 1
 NSOCKETS = 1
 OMP_PLACES = "cores"
+OMP_PROC_BIND = "close"
 PLACES_PER_SOCKET = 64
 
 if __name__ == "__main__":
-  header = f"nodes={NNODES} sockets={NSOCKETS} EPYC places={OMP_PLACES} places_per_socket={PLACES_PER_SOCKET} size = {SIZE} Imax = {IMAX} xL = {X_L} yL = {Y_L} xR = {X_R} yR = {Y_R}"
+  header = f"nodes={NNODES} sockets={NSOCKETS} EPYC places={OMP_PLACES} places_bind={OMP_PROC_BIND} places_per_socket={PLACES_PER_SOCKET} size = {SIZE} Imax = {IMAX} xL = {X_L} yL = {Y_L} xR = {X_R} yR = {Y_R}"
   print("*" * len(header))
   print(header)
   print("*" * len(header))
@@ -30,6 +31,7 @@ if __name__ == "__main__":
         "np": str(node),
         "OMP_PLACES": OMP_PLACES,
         "OMP_NUM_THREADS": str(places),
+        "OMP_PROC_BIND": OMP_PROC_BIND,
         **os.environ
       }, stdout=DEVNULL, stderr=DEVNULL)
       end = time.time()
