@@ -10,6 +10,6 @@
 >&2 echo "DIR is ${SLURM_SUBMIT_DIR}"
 
 dt=$(date +"%Y%m%d_%H%M%S")
-/u/dssc/aesposito/scripts/sendtg.sh 122769426 "Started mandelbrot mpiscaling #epyc" > /dev/null
+/u/dssc/aesposito/scripts/sendtg.sh 122769426 "Started mandelbrot ompscaling #epyc" > /dev/null
 python3.10 -u launcher.py > ${dt}_2epyc_ompscaling.txt
-/u/dssc/aesposito/scripts/sendtg.sh 122769426 "Done mandelbrot mpiscaling #epyc" > /dev/null
+/u/dssc/aesposito/scripts/sendtg.sh 122769426 "Done mandelbrot ompscaling #epyc" > /dev/null
