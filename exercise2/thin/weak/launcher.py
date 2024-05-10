@@ -11,8 +11,8 @@ X_R = 3
 Y_R = 3
 
 NNODES = 1
-NSOCKETS = NNODES * 1
-CORES_PER_SOCKET = 16
+NSOCKETS = NNODES * 2
+CORES_PER_SOCKET = 12
 
 if __name__ == "__main__":
   header = f"nodes={NNODES} THIN start_size={SIZE} Imax={IMAX} xL={X_L} yL={Y_L} xR={X_R} yR={Y_R}"
@@ -35,6 +35,6 @@ if __name__ == "__main__":
     end = time.time()
 
     elapsed = end - start
-    print(f"cores={cores} | imax={imax} | {elapsed:.3f}")
+    print(f"cores={cores} | nx={SIZE} | ny={size} | {elapsed:.3f}")
 
     size -= 2
