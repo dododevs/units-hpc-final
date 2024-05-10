@@ -16,7 +16,7 @@ OMP_PLACES = "cores"
 PLACES_PER_SOCKET = 12
 
 if __name__ == "__main__":
-  header = f"nodes={NNODES} sockets={NSOCKETS} THIN places={OMP_PLACES} places_per_socket={PLACES_PER_SOCKET} size = {SIZE} Imax = {IMAX} xL = {X_L} yL = {Y_L} xR = {X_R} yR = {Y_R}"
+  header = f"nodes={NNODES} sockets={NSOCKETS} THIN places={OMP_PLACES} places_per_socket={PLACES_PER_SOCKET} size={SIZE} Imax={IMAX} xL={X_L} yL={Y_L} xR={X_R} yR={Y_R}"
   print("*" * len(header))
   print(header)
   print("*" * len(header))

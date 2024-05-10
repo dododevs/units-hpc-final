@@ -15,7 +15,7 @@ NSOCKETS = NNODES * 2
 CORES_PER_SOCKET = 12
 
 if __name__ == "__main__":
-  header = f"nodes={NNODES} sockets={PLACES_PER_SOCKET} THIN size = {SIZE} Imax = {IMAX} xL = {X_L} yL = {Y_L} xR = {X_R} yR = {Y_R}"
+  header = f"nodes={NNODES} sockets={PLACES_PER_SOCKET} THIN size={SIZE} Imax={IMAX} xL={X_L} yL={Y_L} xR={X_R} yR={Y_R}"
   print("*" * len(header))
   print(header)
   print("*" * len(header))
