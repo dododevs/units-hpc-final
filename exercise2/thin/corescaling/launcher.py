@@ -32,6 +32,6 @@ if __name__ == "__main__":
     end = time.time()
 
     elapsed = end - start
-    print(f"cores={places} | {elapsed:.3f}")
+    print(f"cores={cores} | {elapsed:.3f}")
 
     cores //= 2
