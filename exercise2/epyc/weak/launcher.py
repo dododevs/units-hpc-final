@@ -22,9 +22,9 @@ if __name__ == "__main__":
 
   imax = IMAX
   size = SIZE
-  cores = CORES_PER_SOCKET
+  cores = CORES_PER_SOCKET * NSOCKETS
 
-  while size > 0:
+  while size > 0 and cores > 0:
     start = time.time()
     call(["make", "run"], env={
       "ARGS": f"{SIZE} {size} {X_L} {Y_L} {X_R} {Y_R} {IMAX} test.pgm",
@@ -37,4 +37,5 @@ if __name__ == "__main__":
     elapsed = end - start
     print(f"cores={cores} | nx={SIZE} | ny={size} | {elapsed:.3f}")
 
-    size -= 4
+    size //= 2
+    cores //= 2
