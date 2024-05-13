@@ -1,0 +1,15 @@
+#!/bin/bash
+
+#SBATCH --job-name=mandelbrot
+#SBATCH --nodes=1
+#SBATCH --time=0-01:50:00
+#SBATCH -A dssc
+#SBATCH -p THIN
+#SBATCH --exclusive
+
+>&2 echo "DIR is ${SLURM_SUBMIT_DIR}"
+
+dt=$(date +"%Y%m%d_%H%M%S")
+/u/dssc/aesposito/scripts/sendtg.sh 122769426 "Started mandelbrot weak #epyc" > /dev/null
+python3.11 -u launcher.py > ${dt}_epyc_weak.txt
+/u/dssc/aesposito/scripts/sendtg.sh 122769426 "Done mandelbrot weak #epyc" > /dev/null
