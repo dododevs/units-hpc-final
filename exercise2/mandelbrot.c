@@ -32,8 +32,7 @@ mb_t mandelbrot_func(double complex z, double complex c, int n, int Imax)
 
 mb_t* mandelbrot_matrix_single(int nx, int ny, double xL, double yL, double xR, double yR, int Imax)
 {
-  double dx, dy, x, y;
-  double complex c;
+  double dx, dy;
   mb_t* matrix;
 
   llog(4, "nx = %d, ny = %d, xL = %.5f, yL = %.5f, xR = %.5f, yR = %.5f, Imax = %d\n", nx, ny, xL, yL, xR, yR, Imax);
