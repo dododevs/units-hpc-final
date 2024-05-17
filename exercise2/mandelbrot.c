@@ -64,8 +64,8 @@ mb_t* mandelbrot_matrix_single(int nx, int ny, double xL, double yL, double xR, 
 
   #pragma omp parallel for schedule(dynamic)
   for (int a = 0; a < nx * ny; a++) {
-    int i = a / nx;
-    int j = a % nx;
+    int i = a % nx;
+    int j = a / nx;
     double x = xL + i * dx;
     double y = yL + j * dy;
     complex c = x + I * y;
