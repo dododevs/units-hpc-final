@@ -44,6 +44,7 @@ mb_t* mandelbrot_matrix_single(int nx, int ny, double xL, double yL, double xR, 
 
   llog(4, "nx * ny = %d\n", nx * ny);
   matrix = (mb_t*) malloc(sizeof(mb_t) * nx * ny);
+  // matrix = (mb_t*) alloca(sizeof(mb_t) * nx * ny);
 
   #ifdef OMP_TOUCH_FIRST
   #pragma omp parallel for schedule(dynamic)
@@ -90,9 +91,10 @@ mb_t* _mandelbrot_matrix_row(int r, int nx, int ny, double xL, double yL, double
 
   llog(4, "nx * ny = %d\n", nx * ny);
   matrix = (mb_t*) malloc(sizeof(mb_t) * nx);
+  // matrix = (mb_t*) alloca(sizeof(mb_t) * nx);
 
   #ifdef OMP_TOUCH_FIRST
-  #pragma omp parallel for schedule(dynamic)
+  #pragma omp parallel for
   for (int i = 0; i < nx; i++) {
     matrix[i] = 0;
   }
@@ -121,7 +123,7 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
 
   if (rank > 0) {
     // signal root that this rank is available to receive a new task to carry out
-    M = (mb_t*) malloc(nx * sizeof(mb_t));
+    M = (mb_t*) alloca(nx * sizeof(mb_t));
     MPI_Send(M, nx, MPI_UNSIGNED_SHORT, 0, TAG_TASK_ROW_RESULT, MPI_COMM_WORLD);
     llog(4, "[rank %d] sent dummy result\n", rank);
 
@@ -158,6 +160,7 @@ mb_t* mandelbrot_matrix_rr(int nx, int ny, double xL, double yL, double xR, doub
         MPI_Send(M, nx, MPI_UNSIGNED_SHORT, 0, TAG_TASK_ROW_RESULT, MPI_COMM_WORLD);
 
         free(recv_requests);
+        free(M);
       }
     }
   } else {

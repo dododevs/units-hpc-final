@@ -43,19 +43,30 @@ mb_t* mandelbrot_matrix_single(int nx, int ny, double xL, double yL, double xR, 
   llog(4, "nx * ny = %d\n", nx * ny);
   matrix = (mb_t*) malloc(sizeof(mb_t) * nx * ny);
 
-  #pragma omp parallel for
-  for (int a = 0; a < nx * ny; a++) {
-    matrix[a] = 0;
-  }
+  // #pragma omp parallel for schedule(dynamic)
+  // for (int a = 0; a < nx * ny; a++) {
+  //   matrix[a] = 0;
+  // }
 
-  #pragma omp parallel for
-  for (int a = 0; a < nx * ny; a++) {
-    int i = a / nx;
-    int j = a % nx;
-    double x = xL + i * dx;
-    double y = yL + j * dy;
-    complex c = x + I * y;
-    matrix[a] = mandelbrot_func(0 * I, c, 0, Imax);
+  // #pragma omp parallel for schedule(dynamic)
+  // for (int a = 0; a < nx * ny; a++) {
+  //   int i = a / nx;
+  //   int j = a % nx;
+  //   double x = xL + i * dx;
+  //   double y = yL + j * dy;
+  //   complex c = x + I * y;
+  //   matrix[a] = mandelbrot_func(0 * I, c, 0, Imax);
+  // }
+
+  #pragma omp parallel for schedule(dynamic)
+  for (int i = 0; i < nx; i++) {
+    x = xL + i * dx;
+    #pragma omp parallel for schedule(dynamic)
+    for (int j = 0; j < ny; j++) {
+      y = yL + j * dy;
+      c = x + I * y;
+      matrix[j * nx + i] = mandelbrot_func(0 * I, c, 0, Imax);
+    }
   }
 
   return matrix;
