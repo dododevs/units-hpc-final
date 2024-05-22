@@ -43,12 +43,12 @@ mb_t* mandelbrot_matrix_single(int nx, int ny, double xL, double yL, double xR, 
   llog(4, "nx * ny = %d\n", nx * ny);
   matrix = (mb_t*) malloc(sizeof(mb_t) * nx * ny);
 
-  // #pragma omp parallel for schedule(dynamic)
-  // for (int a = 0; a < nx * ny; a++) {
-  //   matrix[a] = 0;
-  // }
+  #pragma omp parallel for schedule(static, 1)
+  for (int a = 0; a < nx * ny; a++) {
+    matrix[a] = 0;
+  }
 
-  #pragma omp parallel for schedule(dynamic)
+  #pragma omp parallel for schedule(static, 1)
   for (int a = 0; a < nx * ny; a++) {
     int i = a / nx;
     int j = a % nx;
