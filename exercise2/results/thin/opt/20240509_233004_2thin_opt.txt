@@ -1,0 +1,19 @@
+***************************************************************************************************************
+nodes=2 sockets=4 THIN places=cores places_per_socket=12 size = 4096 Imax = 65535 xL = -3 yL = -3 xR = 3 yR = 3
+***************************************************************************************************************
+nodes=4 | places=12 | 56.205
+nodes=4 | places=6 | 103.186
+nodes=4 | places=3 | 165.113
+nodes=4 | places=1 | 379.128
+nodes=3 | places=12 | 78.066
+nodes=3 | places=6 | 126.524
+nodes=3 | places=3 | 206.618
+nodes=3 | places=1 | 468.853
+nodes=2 | places=12 | 91.906
+nodes=2 | places=6 | 170.033
+nodes=2 | places=3 | 272.638
+nodes=2 | places=1 | 618.243
+nodes=1 | places=12 | 164.944
+nodes=1 | places=6 | 266.799
+nodes=1 | places=3 | 410.012
+nodes=1 | places=1 | 1034.296

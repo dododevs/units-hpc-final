@@ -1,0 +1,31 @@
+***************************************************************************************************************
+nodes=2 sockets=4 EPYC places=cores places_per_socket=64 size = 4096 Imax = 65535 xL = -3 yL = -3 xR = 3 yR = 3
+***************************************************************************************************************
+nodes=4 | places=64 | 23.728
+nodes=4 | places=32 | 41.606
+nodes=4 | places=16 | 78.599
+nodes=4 | places=8 | 85.842
+nodes=4 | places=4 | 118.936
+nodes=4 | places=2 | 181.919
+nodes=4 | places=1 | 358.128
+nodes=3 | places=64 | 27.713
+nodes=3 | places=32 | 57.014
+nodes=3 | places=16 | 130.348
+nodes=3 | places=8 | 117.147
+nodes=3 | places=4 | 168.446
+nodes=3 | places=2 | 204.910
+nodes=3 | places=1 | 448.908
+nodes=2 | places=64 | 45.321
+nodes=2 | places=32 | 73.553
+nodes=2 | places=16 | 147.938
+nodes=2 | places=8 | 179.688
+nodes=2 | places=4 | 261.570
+nodes=2 | places=2 | 325.669
+nodes=2 | places=1 | 559.339
+nodes=1 | places=64 | 72.351
+nodes=1 | places=32 | 139.134
+nodes=1 | places=16 | 275.259
+nodes=1 | places=8 | 300.210
+nodes=1 | places=4 | 408.379
+nodes=1 | places=2 | 499.276
+nodes=1 | places=1 | 923.932
