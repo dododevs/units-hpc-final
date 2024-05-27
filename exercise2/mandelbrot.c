@@ -94,13 +94,13 @@ mb_t* _mandelbrot_matrix_row(int r, int nx, int ny, double xL, double yL, double
   // matrix = (mb_t*) alloca(sizeof(mb_t) * nx);
 
   #ifdef OMP_TOUCH_FIRST
-  #pragma omp parallel for
+  #pragma omp parallel for schedule(static, 1)
   for (int i = 0; i < nx; i++) {
     matrix[i] = 0;
   }
   #endif
 
-  #pragma omp parallel for schedule(dynamic)
+  #pragma omp parallel for schedule(static, 1)
   for (int i = 0; i < nx; i++) {
     x = xL + i * dx;
     y = yL + r * dy;

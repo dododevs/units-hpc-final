@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>HPC 2024</title>
+
+    <!-- styles -->
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/white.css">
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+    <link rel="stylesheet" href="dist/presentation.css">
+
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anybody:wght@300;400;500;600;700;900&family=Inter:wght@400;500;600;700;800;900&family=Livvic:wght@300;400;500;600;700&family=Roboto:ital,wght@0,400;0,500;0,700;0,900;1,400&display=swap" rel="stylesheet">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+        <!-- slide 1 -->
+				<section class="slide">
+          <div class="slide">
+            <small class="aexp muted">High Performance Computing 2023/24 Final Assignment</small>
+            <small class="aexp">Exercise 1</small>
+            <h3 class="inter" style="margin-top: 2rem;">Benchmarking and modeling<br>OpenMPI collective operations on the<br>ORFEO computing cluster</h3>
+            <small style="margin-top: 2.6rem;">Scientific and Data Intensive Computing &bull; Andrea Esposito [SM3600005]</small>
+          </div>
+        </section>
+
+        <!-- slide 2 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: GOAL</small>
+          <div class="slide">
+            <small class="aexp">Benchmarking MPI collective operations on Epyc nodes @ORFEO</small>
+            <small class="aexp muted">using the OSU benchmarking suite</small>
+            <small style="margin-top: 3rem;"><ul>
+              <li style="margin-bottom: 0.6rem;">Tests on AMD Epyc nodes</li>
+              <small class="aexp">analyzing their complex topology to estimate latency</small>
+              <li style="margin-bottom: 0.6rem;">Broadcast and Barrier</li>
+              <small class="aexp">the chosen collectives, with two algorithms each</small>
+              <li style="margin-bottom: 0.6rem;">Parallel performance modelling</li>
+              <small class="aexp">using measured CPU latency and topology characteristics</small>
+            </ul></small> 
+          </div>
+        </section>
+
+        <!-- slide 3 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: WORKFLOW</small>
+          <div class="slide">
+            <img src="img/ex1_steps.png" style="width: 60rem;"/>
+          </div>
+        </section>
+
+        <!-- slide 4 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: THE AMD EPYC 7H12 ARCHITECTURE</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="align-items: center;">
+              <img src="img/rome_processor_v2.jpg" style="width: 48rem;"/>
+              <div class="d-flex" style="margin-left: 2rem;">
+                <small style="margin-top: 3rem;"><ul>
+                  <li style="margin-bottom: 0.6rem;">128 cores per node</li>
+                  <small class="aexp">arranged in 2 sockets</small>
+                  <li style="margin-bottom: 0.6rem;">4 NUMA regions per socket</li>
+                  <small class="aexp">non-uniform memory access</small>
+                  <li style="margin-bottom: 0.6rem;">2 CCDs per NUMA region</li>
+                  <small class="aexp">Core Complex Die, on the same physical die</small>
+                  <li style="margin-bottom: 0.6rem;">2 CCXs per CCD</li>
+                  <small class="aexp">Core Complex, with shared L3 cache (16MB)</small>
+                  <li style="margin-bottom: 0.6rem;">4 cores per CCX</li>
+                  <small class="aexp">possibly hyperthreaded <b class="muted aexp">(disabled)</b>,<br>with private L1i, L1d and L2 caches</small>
+                </ul></small> 
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 5 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: LATENCY ON EPYC NODES</small>
+          <div class="slide">
+            <table style="max-width: 80vw;">
+              <thead>
+                <td><small class="aexp">LOCUS</small></td>
+                <td><small class="aexp">LATENCY<br><b class="muted" style="text-transform: none;">&mu;s</b></small></td>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="flex-col" style="font-size: 1.8rem;">Core<small class="aexp muted" style="font-size: 1rem; margin-top: auto;">within a CCX</small></td>        
+                  <td style="font-size: 2rem; align-items: center;">0.14</td>
+                </tr>
+                <tr>
+                  <td class="flex-col" style="font-size: 1.8rem;">CCX<small class="aexp muted" style="font-size: 1rem; margin-top: auto;">within a CCD</small></td>        
+                  <td style="font-size: 2rem; align-items: center;">0.35</td>
+                </tr>
+                <tr>
+                  <td class="flex-col" style="font-size: 1.8rem;">CCD<small class="aexp muted" style="font-size: 1rem; margin-top: auto;">within a NUMA region</small></td>        
+                  <td style="font-size: 2rem; align-items: center;">0.35</td>
+                </tr>
+                <tr>
+                  <td class="flex-col" style="font-size: 1.8rem;">NUMA<small class="aexp muted" style="font-size: 1rem; margin-top: auto;">within a socket</small></td>        
+                  <td style="font-size: 2rem; vertical-align: center;">0.41</td>
+                </tr>
+                <tr>
+                  <td class="flex-col" style="font-size: 1.8rem;">Socket<small class="aexp muted" style="font-size: 1rem; margin-top: auto;">within a node</small></td>        
+                  <td style="font-size: 2rem; align-items: center;">0.65</td>
+                </tr>
+                <tr>
+                  <td class="flex-col" style="font-size: 1.8rem;">Node<small class="aexp muted" style="font-size: 1rem; margin-top: auto;">within the cluster</small></td>        
+                  <td style="font-size: 2rem; align-items: center;">1.82</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- slide 6 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BROADCAST</small>
+          <div class="slide">
+            <img src="img/mpi_bcast.png" style="width: 60rem;"/>
+          </div>
+        </section>
+
+        <!-- slide 7 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BROADCAST&nbsp;&bull;&nbsp;CHAIN</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
+              <img src="img/bcast_chain.png" style="width: 4rem;"/>
+              <div class="d-flex" style="margin-left: 2rem;">
+                <small style="margin-top: 3rem;"><ul>
+                  <li style="margin-bottom: 0.6rem;">Message passed down through ranks</li>
+                  <small class="aexp">each rank receives and passes down the message to the next rank</small>
+                  <li style="margin-bottom: 0.6rem;">Expected linear execution time</li>
+                  <small class="aexp">scaling with the number of ranks (processes)</small>
+                  <li style="margin-bottom: 0.6rem;">Jumps expected on latency change</li>
+                  <small class="aexp">different latency across CPUs in different regions</small>
+                  <li style="margin-bottom: 0.6rem;">Potential overlapping due to segmentation-based communication</li>
+                  <small class="aexp">possibly sublinear timings</small>
+                </ul></small> 
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 8 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BROADCAST&nbsp;&bull;&nbsp;CHAIN</small>
+          <div class="slide">
+            \[ T(P) =  \gamma \cdot \sum_0^{P - 1}L_{i, i+1} \]
+            <small class="aexp">Sum of latency between neighboring cores</small>
+            <small class="aexp muted">with overlap factor</small>
+          </div>
+        </section>
+
+        <!-- slide 9 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BROADCAST&nbsp;&bull;&nbsp;CHAIN</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: center;">
+              <img src="img/bcast_chain.svg" style="width: 60rem;"/>
+              <div class="muted">
+                \[ \gamma = 0.4 \]
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 10 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BROADCAST&nbsp;&bull;&nbsp;BINARY TREE</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
+              <img src="img/bcast_btree.png" style="width: 24rem;"/>
+              <div class="d-flex" style="margin-left: 2rem;">
+                <small style="margin-top: 3rem;"><ul>
+                  <li style="margin-bottom: 0.6rem;">Message passed down through ranks in a binary tree</li>
+                  <small class="aexp">each rank passes the message to children ranks in the tree</small>
+                  <li style="margin-bottom: 0.6rem;">Expected logarithmic execution time</li>
+                  <small class="aexp">scaling with the logarithm of the number of ranks (processes)</small>
+                  <li style="margin-bottom: 0.6rem;">Jumps expected on latency change</li>
+                  <small class="aexp">different latency across CPUs in different regions</small>
+                </ul></small> 
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 11 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BROADCAST&nbsp;&bull;&nbsp;BINARY TREE</small>
+          <div class="slide">
+            <img src="img/bcast_bintree_algo.png" style="width: 60rem;"/>
+            <small class="aexp">Sum of cores latency obtained traversing the tree</small>
+            <small class="aexp muted">doubled for back and forth communication</small>
+          </div>
+        </section>
+
+        <!-- slide 12 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BROADCAST&nbsp;&bull;&nbsp;BINARY TREE</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: center;">
+              <img src="img/bcast_bintree.svg" style="width: 60rem;"/>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 13 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BARRIER</small>
+          <div class="slide">
+            <img src="img/mpi_barrier.png" style="width: 60rem;"/>
+          </div>
+        </section>
+
+        <!-- slide 14 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BARRIER&nbsp;&bull;&nbsp;LINEAR</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
+              <img src="img/barrier_linear.png" style="width: 24rem;"/>
+              <div class="d-flex" style="margin-left: 2rem;">
+                <small style="margin-top: 3rem;"><ul>
+                  <li style="margin-bottom: 0.6rem;">Zero-sized message passed to each rank from the root</li>
+                  <small class="aexp">ping-pong communication between root and ranks</small>
+                  <li style="margin-bottom: 0.6rem;">Expected fragmented execution time</li>
+                  <small class="aexp">strongly influenced by latency with respect to Core #0</small>
+                  <li style="margin-bottom: 0.6rem;">Jumps expected on latency change</li>
+                  <small class="aexp">different latency across CPUs in different regions</small>
+                </ul></small> 
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 14 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BARRIER&nbsp;&bull;&nbsp;LINEAR</small>
+          <div class="slide">
+            \[ T(P) = 2 \cdot L_{P} + \gamma \cdot \sum_0^{L - 1}L_P \]
+            <small class="aexp">Sum of latency between Core #0 and other cores</small>
+            <small class="aexp muted">with overlap factor and initial offset</small>
+          </div>
+        </section>
+
+        <!-- slide 15 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BARRIER&nbsp;&bull;&nbsp;LINEAR</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: center;">
+              <img src="img/barrier_linear.svg" style="width: 60rem;"/>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 16 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BARRIER&nbsp;&bull;&nbsp;DOUBLE RING</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
+              <img src="img/barrier_dring.png" style="width: 24rem;"/>
+              <div class="d-flex" style="margin-left: 2rem;">
+                <small style="margin-top: 3rem;"><ul>
+                  <li style="margin-bottom: 0.6rem;">Zero-sized message passed donw through ranks in a ring</li>
+                  <small class="aexp">each rank receives and sends to its left and right neighbors, respectively</small>
+                  <li style="margin-bottom: 0.6rem;">Expected linear execution time</li>
+                  <small class="aexp">scaling with the number of ranks (processes)</small>
+                  <li style="margin-bottom: 0.6rem;">Jumps expected on latency change</li>
+                  <small class="aexp">different latency across CPUs in different regions</small>
+                  <li style="margin-bottom: 0.6rem;">Potential overlapping due to ranks exiting the ring</li>
+                  <small class="aexp">possibly sublinear timings</small>
+                </ul></small> 
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 17 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BARRIER&nbsp;&bull;&nbsp;DOUBLE RING</small>
+          <div class="slide">
+            <img src="img/barrier_dring_algo.png" style="width: 60rem;"/>
+            <small class="aexp">Sum of latency between neighboring cores</small>
+            <small class="aexp muted">in a ring configuration</small>
+          </div>
+        </section>
+
+        <!-- slide 18 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: BARRIER&nbsp;&bull;&nbsp;DOUBLE RING</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: center;">
+              <img src="img/barrier_dring.svg" style="width: 60rem;"/>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 19 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 1: CONCLUSIONS</small>
+          <div class="slide">
+            <small style="margin-top: 3rem;"><ul>
+              <li style="margin-bottom: 0.6rem;">Satisfying performance of empirical models</li>
+              <small class="aexp">obtained with latency measurements and leveraging topology caveats</small>
+              <li style="margin-bottom: 0.6rem;">Implementation and topology caveats</li>
+              <small class="aexp">employed algorithms, optimization patterns</small>
+              <li style="margin-bottom: 0.6rem;">Unpredictable factors</li>
+              <small class="aexp">e.g. node/interconnect/network congestion</small>
+            </ul></small> 
+          </div>
+        </section>
+
+        <!-- slide 20 -->
+        <section class="slide">
+          <div class="slide">
+            <small class="aexp muted">High Performance Computing 2023/24 Final Assignment</small>
+            <small class="aexp">Exercise 2c</small>
+            <h3 class="inter" style="margin-top: 2rem;">Devising and benchmarking a hybrid<br>MPI + OpenMP parallel implementation<br>of a Mandelbrot set generator algorithm</h3>
+            <small style="margin-top: 2.6rem;">Scientific and Data Intensive Computing &bull; Andrea Esposito [SM3600005]</small>
+          </div>
+        </section>
+
+        <!-- slide 21 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: THE THEORY</small>
+          <div class="slide">
+            <small class="aexp">two dimensional set defined in the complex plane</small>
+            <small class="aexp">containing points for which the function</small>
+            \[ f(z) = z^2 + c \]
+            <small class="aexp">does not diverge to infinity</small>
+            <small class="aexp muted">when applied recursively starting at z = 0</small>
+          </div>
+        </section>
+
+        <!-- slide 22 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: THE THEORY</small>
+          <div class="slide">
+            <img src="img/mandelbrot_matrix.png" style="width: 42rem;"/>
+            <small class="aexp">each cell contains a value between 0 and Imax</small>
+            <small class="aexp muted">xL, xR, yL, xR, nx, ny and imax are input parameters</small>
+          </div>
+        </section>
+
+        <!-- slide 23
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: THE FUNCTION</small>
+          <div class="slide">
+            <img src="img/mandelbrot_func.png" style="width: 51rem;"/>
+          </div>
+        </section> -->
+
+        <!-- slide 23 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: PARALLELIZATION IDEA</small>
+          <div class="slide">
+            <small class="aexp">HYBRID PARALLELIZATION</small>
+            <small class="aexp muted">MPI + OPENMP</small>
+            <img src="img/mandelbrot_parallelization.png" style="width: 64rem;"/>
+            <small class="aexp">&nbsp;</small>
+            <small class="aexp"><span class="aexp muted">each</span> row <span class="aexp muted">is computed by an</span> MPI rank <span class="aexp muted"> in a</span> round robin<sup>*</sup> <span class="aexp muted">fashion</span></small>
+            <small class="aexp"><span class="aexp muted">each</span> pixel <span class="aexp muted"> within a row is computed by an</span> <span class="aexp">OpenMP thread</span></small>
+            <small class="aexp">&nbsp;</small>
+            <small class="aexp muted"><small><sup>*</sup> static in the first naive implementation</small></small>
+          </div>
+        </section>
+
+        <!-- slide 24 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: PARALLELIZATION IDEA</small>
+          <div class="slide">
+            <small class="aexp">MPI (distributed memory)</small>
+            <small class="aexp muted">across physically distinct hardware (nodes<span style="vertical-align: super;"><sup>1</sup></span>)</small>
+            <small class="aexp">+</small>
+            <small class="aexp">OpenMP (shared memory)</small>
+            <small class="aexp muted">within computational units (inside nodes, across threads<span style="vertical-align: super;"><sup>2</sup></span>)</small>
+            <small>&nbsp;</small>
+            <small class="muted livvic"><span style="vertical-align: super;"><sup>1</sup></span>&nbsp;for the sake of this implementation,<br>sockets were used instead of nodes to increase granularity of MPI scalability data</small>
+            <small class="muted livvic"><span style="vertical-align: super;"><sup>2</sup></span>&nbsp;for the sake of this implementation,<br>cores were used instead of threads as Hyper-threading was not available on the tested hardware</small>
+
+          </div>
+        </section>
+
+        <!-- slide 25 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: MPI PARALLELIZATION&nbsp;&bull;&nbsp;MASTER SIDE</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
+              <img src="img/mpi_rr.png" style="width: 48rem;"/>
+              <small style="margin-top: 3rem;"><ul>
+                <li style="margin-bottom: 0.6rem;">Master contributes to the computation</li>
+                <small class="aexp">instead of busy-waiting for the slaves to finish</small>
+                <li style="margin-bottom: 0.6rem;">No collective used</li>
+                <small class="aexp">only pt2pt communication, rows in mixed order</small>
+                <li style="margin-bottom: 0.6rem;">Better than static</li>
+                <small class="aexp">no predetermined work division, available ranks carry out available work</small>
+              </ul></small> 
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 26 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: OPENMP PARALLELIZATION&nbsp;&bull;&nbsp;SLAVE SIDE</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
+              <img src="img/mandelbrot_row.png" style="width: 52rem;"/>
+              <small style="margin-top: 3rem;"><ul>
+                <li style="margin-bottom: 0.6rem;">Simple work construct directive</li>
+                <small class="aexp">loop parallelized with single pre-processor directive</small>
+                <li style="margin-bottom: 0.6rem;">Work distribution among threads managed by OpenMP</li>
+                <small class="aexp">with implicit synchronization and no data race (independent array positions)</small>
+                <li style="margin-bottom: 0.6rem;">Dynamic scheduling</li>
+                <small class="aexp">works better in case of unpredictable load in loop iterations</small>
+              </ul></small> 
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 27 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: OPENMP PARALLELIZATION&nbsp;&bull;&nbsp;TOUCH-BY-ALL</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
+              <img src="img/openmp_touch.png" style="width: 52rem;"/>
+              <small style="margin-top: 3rem;"><ul>
+                <li style="margin-bottom: 0.6rem;">Potential cache contention</li>
+                <small class="aexp">as memory is written by distant threads but initialized close together</small>
+                <li style="margin-bottom: 0.6rem;">Mitigation through <i>touch-by-all</i> policy</li>
+                <small class="aexp">initializing memory close to the computational resource (core) that will use it</small>
+                <li style="margin-bottom: 0.6rem;">Same scheduling required</li>
+                <small class="aexp">when parallelizing memory initialization and computation</small>
+                <li style="margin-bottom: 0.6rem;">No particular variation</li>
+                <small class="aexp">In the context of the experiments, did not bring noteworthy changes</small>
+              </ul></small> 
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 28 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: TESTING</small>
+          <div class="slide">
+            <small class="aexp">testing performed on Epyc nodes of the ORFEO cluster</small>
+            <small class="aexp muted">with MPI processes bound to sockets with</small>
+            <code data-trim style="font-size: 2rem; margin: 2rem;">
+              mpirun --map-by socket --bind-to socket
+            </code>
+            <small class="aexp muted">and OpenMP threads controlled by</small>
+            <code data-trim style="font-size: 2rem; margin: 2rem;">
+              OMP_NUM_THREADS=# OMP_PLACES=cores OMP_PLACES=[spread/close]
+            </code>
+          </div>
+        </section>
+
+        <!-- slide 29 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: TESTING</small>
+          <div class="slide">
+            <img src="img/epyc_optscaling.svg" style="width: 64rem;"/>
+          </div>
+        </section>
+
+        <!-- slide 30 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: SCALABILITY</small>
+          <div class="slide">
+            <small class="aexp">other types of scalability tested</small>
+            <small style="margin-top: 3rem;"><ul>
+              <li style="margin-bottom: 0.6rem;"><b>MPI</b> scalability</li>
+              <small class="aexp">setting the number of OpenMP threads to 1<br>and increasing MPI processes, keeping the problem size constant</small>
+              <div>&nbsp;</div>
+              <li style="margin-bottom: 0.6rem;"><b>OpenMP strong</b> scalability</li>
+              <small class="aexp">setting the number of MPI processes to 1<br>and increasing OpenMP threads, keeping the problem size constant</small>
+              <div>&nbsp;</div>
+              <li style="margin-bottom: 0.6rem;"><b> OpenMP weak</b> scalability</li>
+              <small class="aexp">varying the processing resources and problem size proportionately</small>
+            </ul></small>
+          </div>
+        </section>
+
+        <!-- slide 29 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: MPI SCALABILITY</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
+              <img src="img/epyc_mpiscaling.svg" style="width: 64rem;"/>
+              <small style="margin-top: 3rem;"><ul>
+                <li style="margin-bottom: 0.6rem;">Quasilinear scaling</li>
+                <small class="aexp">hindered by round-robin logic</small>
+                <li style="margin-bottom: 0.6rem;">Communication overhead</li>
+                <small class="aexp">possibly enlarged by the inter-node communication</small>
+              </ul></small>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 29 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: OpenMP SCALABILITY</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
+              <img src="img/epyc_ompscaling.svg" style="width: 64rem;"/>
+              <small style="margin-top: 3rem;"><ul>
+                <li style="margin-bottom: 0.6rem;">Linear scaling with spread-apart cores</li>
+                <small class="aexp">possibly due to simultaneous memory access</small>
+                <li style="margin-bottom: 0.6rem;">Leap when all cores are used</li>
+                <small class="aexp">allegedly due to saturation of memory channels</small>
+                <li style="margin-bottom: 0.6rem;">Divergence from theoretical speedup with close-together cores</li>
+                <small class="aexp">probably caused by memory channel contention</small>
+                <li style="margin-bottom: 0.6rem;">Touch-by-all tested</li>
+                <small class="aexp">with no visible improvement</small>
+              </ul></small>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 30 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: OpenMP SCALABILITY&nbsp;&bull;&nbsp;SMALL</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
+              <img src="img/epyc_ompscaling_small.svg" style="width: 64rem;"/>
+              <small style="margin-top: 3rem;"><ul>
+                <li style="margin-bottom: 0.6rem;">Maximum value decreased from 65535 to 8192</li>
+                <small class="aexp">memory contention issues mitigated by optimizations</small>
+                <li style="margin-bottom: 0.6rem;">Less visible divergence trend (spread)</li>
+                <small class="aexp">memory contention issues mitigated by optimizations</small>
+              </ul></small>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 31 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: OpenMP Weak SCALABILITY</small>
+          <div class="slide">
+            <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
+              <img src="img/epyc_weak.svg" style="width: 64rem;"/>
+              <small style="margin-top: 3rem;"><ul>
+                <li style="margin-bottom: 0.6rem;">On a single node, decreasing cores and matrix x size</li>
+                <small class="aexp">halving cores at each iteration from 128 to 2 and halving x size from 4096 to 64</small>
+                <li style="margin-bottom: 0.6rem;">Poor weak scalability on small sizes</li>
+                <small class="aexp">synchronization overhead noticeable on small computation</small>
+                <li style="margin-bottom: 0.6rem;">Good weak scalability on big sizes</li>
+                <small class="aexp">expected constant time behavior</small>
+              </ul></small>
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 32 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">EXERCISE 2: CONCLUSIONS</small>
+          <div class="slide">
+            <small class="aexp">feasible implementation devised</small>
+            <small class="aexp muted">and</small>
+            <small class="aexp">hybrid parallelization exploited</small>
+            <small class="aexp muted">&nbsp;</small>
+
+            <small class="aexp muted">possible improvements</small>
+
+            <small style="margin-top: 1rem;"><ul>
+              <li style="margin-bottom: 0.6rem;">More effective static work division</li>
+              <small class="aexp">to avoid overhead from distribution and synchronization logic</small>
+              <li style="margin-bottom: 0.6rem;">More efficient data transfers</li>
+              <small class="aexp">in order to accumulate data, avoid multiple transfers and exploit caches</small>
+              <li style="margin-bottom: 0.6rem;">Topology study</li>
+              <small class="aexp">in order to exploit data locality and more efficient memory access</small>
+              <li style="margin-bottom: 0.6rem;">Other parallelization solutions</li>
+              <small class="aexp">exploting both single and multiple nodes, e.g. hybrid MPI-3 paradigm</small>
+            </ul></small>
+          </div>
+        </section>
+
+        <!-- slide 33 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 2.5rem; justify-content: end; align-items: center;">
+            <img src="img/nuovo-logo_units.jpg" style="height: 3rem;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">THANK YOU FOR YOUR ATTENTION</small>
+          <div class="slide">
+          </div>
+        </section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+    <script src="plugin/math/math.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			Reveal.initialize({
+				hash: true,
+        disableLayout: true,
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX ]
+			});
+		</script>
+	</body>
+</html>

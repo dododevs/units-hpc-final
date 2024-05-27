@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>Train delay prediction</title>
+
+    <!-- styles -->
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/black.css">
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+    <link rel="stylesheet" href="dist/presentation.css">
+
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anybody:wght@300;400;500;600;700;900&family=Inter:wght@400;500;600;700;800;900&family=Livvic:wght@300;400;500;600;700&family=Roboto:ital,wght@0,400;0,500;0,700;0,900;1,400&display=swap" rel="stylesheet">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+        <!-- slide 1 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; left: 4rem; top: 2.5rem;">
+            <img src="img/logo_or.svg" style="width: 6rem;"/>
+            <div class="flex-col" style="align-items: start; font-size: 2.4rem; margin: 1.2rem 3rem; color: #ed771d;">
+              <small>Free University of Bolzano-Bozen</small>
+              <small>Faculty of Engineering</small>
+              <small>Bachelor in Computer Science</small>
+            </div>
+          </div>
+          <div class="slide" style="margin-top: 6rem;">
+            <div class="flex-col" style="margin-left: -16rem;">
+              <small style="font-weight: 700; align-self: self-start; margin-bottom: -0.5rem;">HOW TO</small>
+              <h2 class="livvic">train delay prediction</h2>
+              <img class="colorize" src="img/train_line_full.svg" style="position: absolute; min-width: 256rem; margin-left: -78rem; margin-right: auto; margin-top: -6.05rem; z-index: -1;"/>
+            </div>
+            <small style="margin-top: 6.76rem;"><b>Final Thesis Dissertation &dash; 28th Sep 2023</b></small>
+            <small style="margin-top: 1.1rem;">Andrea Esposito</small>
+          </div>
+				</section>
+
+        <!-- slide 2 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg); ;"/>
+          </div>
+          <!-- <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">WHAT IS DELAY?</small> -->
+          <div class="slide">
+            <small class="aexp">Question</small>
+            <h2 class="livvic">What do we mean by delay?</h2>
+          </div>
+        </section>
+
+        <!-- slide 3 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg); ;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">WHAT IS DELAY?</small>
+          <div class="slide">
+            <img class="fragment fade-in-then-out colorize" src="img/delay1.svg" style="position: absolute; height: 10rem;"/>
+            <img class="fragment fade-in-then-out colorize" src="img/delay2.svg" style="position: absolute; height: 10rem;"/>
+            <img class="fragment fade-in-then-out colorize" src="img/delay3.svg" style="position: absolute; height: 10rem;"/>
+            <img class="fragment fade-in-then-out colorize" src="img/delay4.svg" style="position: absolute; height: 10rem;"/>
+            <img class="fragment fade-in-then-out colorize" src="img/delay5.svg" style="position: absolute; height: 10rem;"/>
+            <img class="fragment fade-in-then-out colorize" src="img/delay6.svg" style="position: absolute; height: 10rem;"/>
+            <div style="margin-top: 14rem">
+            $t_{\tiny arr}^{\scriptsize b} = t_{\tiny dep}^{\scriptsize a} + \Delta t_{\tiny travel}^{\scriptsize a \rightarrow b} + d$
+            </div>
+          </div>
+        </section>
+
+        <!-- slide 4 -->
+				<section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg); ;"/>
+          </div>
+          <!-- <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">WHAT IS DELAY?</small> -->
+          <div class="slide">
+            <small class="aexp">Question</small>
+            <h2 class="inter">Can we predict delay?</h2>
+          </div>
+        </section>
+
+        <!-- slide 5 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg); ;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">ACKNOWLEDGEMENTS</small>
+          <div class="slide">
+            <div class="flex-row" style="align-items: center;">
+              <img src="img/sta.png" style="height: 3rem; margin-bottom: 2rem;"/>
+              &nbsp;&nbsp;+&nbsp;&nbsp;
+              <img src="img/logo_or.svg" style="height: 5rem;"/>
+            </div>
+            <small><ul>
+              <li style="margin-bottom: 0.6rem;">Thomas Auckenthaler</li>
+              <small class="aexp">Company Tutor 1st period</small>
+              <li style="margin-bottom: 0.6rem;">Franz Bewaller</li>
+              <small class="aexp">Company Tutor 2nd period</small>
+              <li style="margin-bottom: 0.6rem;">Bruno Carpentieri</li>
+              <small class="aexp">Academic Tutor & Thesis Supervisor</small>
+            </ul></small>
+          </div>
+        </section>
+
+        <!-- slide 6 -->
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg);"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">WHAT WAS DONE?</small>
+          <div class="slide">
+            <div class="flex-row" style="font-size: 2rem;"><b>Machine Learning</b>&nbsp;<small class="muted" style="margin-top: auto; margin-bottom: 0.2rem;"><i>autonomously</i></small></div>
+            <div class="fragment fade-in" style="position: absolute; margin-top: 8rem;">
+              <div style="font-size: 2rem;">$\subseteq$</div>
+              <div class="flex-row" style="font-size: 2rem;"><b>Artificial Intelligence</b>&nbsp;<small class="muted" style="margin-top: auto; margin-bottom: 0.3rem;"><i>like humans</i></small></div>
+            </div>
+            <div class="fragment fade-in" style="position: absolute; margin-bottom: 8rem;">
+              <div style="font-size: 2rem;"><b>Neural Networks</b></div>
+              <div style="font-size: 2rem;">$\subseteq$</div>
+            </div>
+          </div>
+        </section>
+          
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg);"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">WHAT WAS DONE?</small>
+          <div class="slide">
+            <div style="position: absolute; margin-bottom: 12rem;">
+              <small class="aexp" style="margin-top: 2rem;">DERIVE</small>
+              <div class="flex-row" style="font-size: 2rem; margin-top: 2rem;"><small style="margin-top: auto; margin-bottom: 0.5rem;"></small>&nbsp;$f(x^{(i)}) = y^{(i)}: X \rightarrow Y$<small style="margin-top: auto; margin-bottom: 0.5rem;"><i>without defining it explicitly</i></small></div>
+              <small class="aexp" style="margin-top: 2rem;">WHERE</small>
+              <div class="flex-row muted" style="font-size: 2rem; margin-top: 2rem; justify-content: center;"><i style="color: white;">$X$</i><small style="margin-top: auto; margin-bottom: 0.55rem;">is a set of <b style="color: white;">observations</b> and</small>&nbsp;<i style="color: white;">$Y$</i><small style="margin-top: auto; margin-bottom: 0.5rem;">is a set of <b style="color: white;">predictions</b></small></div>
+              <small class="aexp" style="margin-top: 2rem;">USING</small>
+              <div style="margin-top: 2rem;">$\{(x^{\tiny(1)}, y^{\tiny(1)}), \,\underset{\tiny \rm a\,lot\,of}{...}\,, (x^{\tiny(n)}, y^{\tiny(n)})\}$</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg);"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">WHAT WAS DONE?</small>
+          <div class="slide">
+            <div class="flex-row" style="justify-content: center;">
+              <div style="margin-top: auto; margin-bottom: auto;">$\begin{bmatrix} x^{\tiny (i)}_{\tiny 1} \\ \vdots \\ x^{\tiny (i)}_{\tiny n} \end{bmatrix} \;$&rarr;</div>
+              <video autoplay loop>
+                <source data-src="media/videos/animations/600p15/Test.webm" type="video/webm" />
+              </video>
+              <div style="margin-top: auto; margin-bottom: auto;">&rarr;&nbsp;$\^y^{\tiny (i)}$</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg);"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">WHAT WAS DONE?</small>
+          <div class="slide">
+            <div>
+              <h4 class="aexp">First attempt</h4>
+              <small class="aexp muted">DATASET</small>
+              <table style="max-width: 80vw; margin-top: 2rem;">
+                <thead>
+                  <td><b>ridedt<br><small class="aexp muted">DATE</small></td>
+                  <td><b>rideid<br><small class="aexp muted">TRAIN NUMBER</small></td>
+                  <td><b>stop</b><br><small class="aexp muted">STATION</small></td>
+                  <td><b>arr_sched</b><br><small class="aexp muted">SCHEDULED ARRIVAL</small></td>
+                  <td><b>dep_sched</b><br><small class="aexp muted">SCHEDULED DEPARTURE</small></td>
+                  <td><b>dow</b><br><small class="aexp muted">WEEKDAY 0 to 6</small></td>
+                  <td><b>day_type</b><br><small class="aexp muted">TYPE OF DAY</small></td>
+                </thead>
+                <tbody>
+                  <td>2022-09-01</td>
+                  <td>12345</td>
+                  <td>it:12345:12345</td>
+                  <td>17:05:00</td>
+                  <td>17:06:00</td>
+                  <td>5</td>
+                  <td>w</td>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg); ;"/>
+          </div>
+          <!-- <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">WHAT IS DELAY?</small> -->
+          <div class="slide">
+            <small class="aexp">Question</small>
+            <h2 class="inter">Did it work?</h2>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg); ;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">HOW TO EVALUATE RESULTS?</small>
+          <div class="slide">
+            <small class="aexp" style="margin-top: 2rem;">Mean Absolute Error</small>
+            <div style="margin-top: 2rem;">
+            ${\footnotesize M\!AE} = \frac{\sum_{i=1}^{n}|y^{\tiny (i)} - \^{y}^{\tiny (i)}|}{n}$
+            </div>
+            <small class="aexp" style="margin-top: 2rem;">Greater prediction error = further from recorded value</small>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg);"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">DID IT WORK?<small class="muted">&nbsp;YES</small></small>
+          <div class="slide">
+            <div>
+              <h4 class="aexp">First attempt</h4>
+              <small class="aexp muted">RESULTS</small>
+              <table style="max-width: 80vw; margin-top: 2rem;">
+                <thead>
+                  <td>MAE IM</td>
+                  <td><b>MAE pred.</td>
+                  <td><b>MAE pred. ~1min</b></td>
+                  <td><b>MAE pred. ~5min</b></td>
+                </thead>
+                <tbody>
+                  <td>$72.4989$</td>
+                  <td>$44.4873$</td>
+                  <td>$43.8306$</td>
+                  <td>$70.5966$</td>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg); ;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">WHAT'S NEXT?</small>
+          <div class="slide">
+            <div class="flex-row" style="justify-content: space-between; width: 50vw;">
+              <div class="flex-col" style="padding: 1rem;">
+                <img src="img/weather.svg" style="height: 8rem; margin-bottom: 0;"/>
+                <small class="aexp">ADDITIONAL DATA</small>
+                <small style="margin-top: 1rem;" class="aexp muted">WEATHER, PASSENGER FLOW, SIGNAL STATUSES, SPECIAL EVENTS...</small>
+              </div>
+              <div class="flex-col" style="padding: 1rem; width: 50vw;">
+                <h4 class="aexp" style="color: #ed771d; text-transform: none!important; padding: 2rem; margin-bottom: 1.15rem;">$f(x)$</h4>
+                <small class="aexp">ALTERNATIVE LEARNING TECHNIQUES</small>
+                <small style="margin-top: 1rem;" class="aexp muted">RANDOM FOREST</small>
+              </div>
+              <div class="flex-col" style="width: 50vw;">
+                <img src="img/data.svg" style="height: 8rem; margin-bottom: 1rem;"/>
+                <small class="aexp">MODELING of REAL WORLD SCENARIO</small>
+                <small style="margin-top: 1rem;" class="aexp muted"></small>
+                <small style="margin-top: 1rem;" class="aexp muted">ADJACENCY GRAPH</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg); ;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">WHAT'S NEXT?</small>
+          <div class="slide">
+            <img style="max-width: 50vw;" src="img/comparison_pres.png">
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="flex-row" style="position: absolute; bottom: 2.5rem; right: 0rem; justify-content: end; align-items: center;">
+            <img src="img/train.svg" style="height: 3rem; transform: rotateY(180deg); ;"/>
+          </div>
+          <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;">WHAT'S NEXT?</small>
+          <div class="slide">
+            <ul>
+              <li><b style="color: #ed771d;">Good</b> starting point</li>
+              <li><b style="color: #ed771d;">Active</b> research and <b style="color: #ed771d;">evolving</b> learning techniques</li>
+              <li>Noteworthy <b style="color: #ed771d;">business</b> interest</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="slide">
+          <div class="slide">
+            <small style="font-size: 1.4rem;" class="aexp muted">for a more accurately delayed rail traffic</small>
+            <small style="font-size: 2rem;" class="aexp" >that's been</small>
+            <small class="aexp" style="position: absolute; left: 4rem; bottom: 4rem;"></small>
+            <div class="flex-col" style="margin-left: -16rem; margin-top: 3rem;">
+              <small style="font-weight: 700; align-self: self-start; margin-bottom: -0.45rem;">HOW TO</small>
+              <h2 class="livvic"><span style="color: #ed771d;">train</span> delay prediction</h2>
+              <img class="colorize" src="img/train_line_full.svg" style="position: absolute; min-width: 256rem; margin-left: -78rem; margin-right: auto; margin-top: -6.05rem; z-index: -1;"/>
+            </div>
+          </div>
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+    <script src="plugin/math/math.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			Reveal.initialize({
+				hash: true,
+        disableLayout: true,
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX ]
+			});
+		</script>
+	</body>
+</html>
