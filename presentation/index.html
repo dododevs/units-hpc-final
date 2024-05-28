@@ -585,6 +585,13 @@
             <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
               <img src="img/epyc_mpiscaling.svg" style="width: 64rem;"/>
               <small style="margin-top: 3rem;"><ul>
+                <li style="margin-bottom: 0.6rem;">Scale processes, lock threads</li>
+                <code>mpirun -np $i<br>
+                  &nbsp;--map-by socket<br>
+                  &nbsp;--bind-to socket</code>
+                <br>
+                <code>OMP_NUM_THREADS=1</code>
+                <br><br>
                 <li style="margin-bottom: 0.6rem;">Quasilinear scaling</li>
                 <small class="aexp">hindered by round-robin logic</small>
                 <li style="margin-bottom: 0.6rem;">Communication overhead</li>
@@ -603,12 +610,19 @@
           <div class="slide">
             <div class="d-flex flex-row" style="width:100%; align-items: center; justify-content: space-evenly;">
               <img src="img/epyc_ompscaling.svg" style="width: 64rem;"/>
-              <small style="margin-top: 3rem;"><ul>
-                <li style="margin-bottom: 0.6rem;">Linear scaling with spread-apart cores</li>
+              <small style="margin-top: 2rem;"><ul>
+                <li style="margin-bottom: 0.6rem;">Scale processes, lock threads</li>
+                <code>mpirun -np 1<br>
+                  &nbsp;--map-by node<br>
+                  &nbsp;--bind-to none</code>
+                <br>
+                <code>OMP_NUM_THREADS=$n</code>
+                <br><br>
+                <li style="margin-bottom: 0.6rem;">Linear scaling with <b style="color: #ef553b;">spread-apart</b> cores</li>
                 <small class="aexp">possibly due to simultaneous memory access</small>
                 <li style="margin-bottom: 0.6rem;">Leap when all cores are used</li>
                 <small class="aexp">allegedly due to saturation of memory channels</small>
-                <li style="margin-bottom: 0.6rem;">Divergence from theoretical speedup with close-together cores</li>
+                <li style="margin-bottom: 0.6rem;">Divergence from <b style="color: #00cc96">theoretical speedup</b><br>with <b style="color: #636efa;">close-together</b> cores</li>
                 <small class="aexp">probably caused by memory channel contention</small>
                 <li style="margin-bottom: 0.6rem;">Touch-by-all tested</li>
                 <small class="aexp">with no visible improvement</small>
@@ -629,7 +643,7 @@
               <small style="margin-top: 3rem;"><ul>
                 <li style="margin-bottom: 0.6rem;">Maximum value decreased from 65535 to 8192</li>
                 <small class="aexp">memory contention issues mitigated by optimizations</small>
-                <li style="margin-bottom: 0.6rem;">Less visible divergence trend (spread)</li>
+                <li style="margin-bottom: 0.6rem;">Less visible divergence trend (<b style="color: #ef553b;">close</b>)</li>
                 <small class="aexp">memory contention issues mitigated by optimizations</small>
               </ul></small>
             </div>
